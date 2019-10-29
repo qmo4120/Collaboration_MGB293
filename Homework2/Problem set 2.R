@@ -1,6 +1,4 @@
-##Install packages
-install.packages("tidyverse")
-install.packages("dbplyr")
+
 
 ##load package
 library(tidyr)
@@ -12,7 +10,7 @@ data_original <-read.csv("~/Desktop/Collaboration_MGB293/Homework2/SteamDD.csv")
 
 ##explore data set
 View(data_original)
-glimpse(data_original)
+str(data_original)
 
 ##change key countinuous variables to numeric
 
@@ -37,8 +35,29 @@ data_dummy <- data_original %>%
          X_group_x_period = X_group * X_period,
          X_group_x_period_x_strategy = X_group_x_period*X_strategy,
          X_group_x_period_x_action = X_group_x_period*X_action,
-         X_group_x_period_roleplay = X_group_x_period*X_roleplay
-  )
+         X_group_x_period_x_roleplay = X_group_x_period*X_roleplay,
+         X_lo_price = ifelse(price <= 22.99, 1,0),
+         X_hi_price = ifelse(price > 22.99, 1,0),
+         X_lo_age = ifelse(age_week <= 14, 1,0),
+         X_hi_age = ifelse(age_week > 14, 1,0),
+         X_group_x_period_roleplay_x_lo_price = X_group_x_period*X_roleplay*X_lo_price,
+         X_group_x_period_action_x_lo_price = X_group_x_period*X_action*X_lo_price,
+         X_group_x_period_strategy_x_lo_price = X_group_x_period*X_strategy*X_lo_price,
+         X_group_x_period_roleplay_x_hi_price = X_group_x_period*X_roleplay*X_hi_price,
+         X_group_x_period_action_x_hi_price = X_group_x_period*X_action*X_hi_price,
+         X_group_x_period_strategy_x_hi_price = X_group_x_period*X_strategy*X_hi_price,
+         X_group_x_period_roleplay_x_lo_age = X_group_x_period*X_roleplay*X_lo_age,
+         X_group_x_period_action_x_lo_age = X_group_x_period*X_action*X_lo_age,
+         X_group_x_period_strategy_x_lo_age = X_group_x_period*X_strategy*X_lo_age,
+         X_group_x_period_roleplay_x_hi_age = X_group_x_period*X_roleplay*X_hi_age,
+         X_group_x_period_action_x_hi_age = X_group_x_period*X_action*X_hi_age,
+         X_group_x_period_strategy_x_hi_age = X_group_x_period*X_strategy*X_hi_age,
+         X_group_x_period_x_lo_age = X_group*X_period*X_lo_age,
+         X_group_x_period_x_lo_price = X_group*X_period*X_lo_price
+         )
+
+
+View(data_dummy)
 
 
 
@@ -47,9 +66,7 @@ data_dummy <- data_original %>%
   
 ##perform linear regression
 ##retention time
-reg_age <- lm(data_dummy$age_week ~ data_dummy$X_group+ 
-                                    data_dummy$X_period+ 
-                                    data_dummy$X_group_x_period)
+
 
 ##unit sale
 reg_unitsale <- lm(data_dummy$unit_sales ~ data_dummy$X_group+ 
@@ -57,47 +74,34 @@ reg_unitsale <- lm(data_dummy$unit_sales ~ data_dummy$X_group+
                 data_dummy$X_group_x_period)
 
 
-##price
-reg_price <- lm(data_dummy$price ~ data_dummy$X_group+ 
-                  data_dummy$X_period+ 
-                  data_dummy$X_group_x_period)
-
 ##part2
-##retention time (with interaction with other variable)
-reg_age_2 <- lm(data_dummy$age_week ~ data_dummy$X_group+ 
-                data_dummy$X_period+
-                data_dummy$X_strategy+
-                data_dummy$X_action+
-                data_dummy$X_roleplay+
-                data_dummy$X_group_x_period+
-                data_dummy$X_group_x_period_x_strategy+
-                data_dummy$X_group_x_period_x_action+
-                data_dummy$X_group_x_period_roleplay
-                )
+
+data_dummy_only <- data_dummy %>%
+  dplyr::select(unit_sales,
+                X_strategy,
+                X_roleplay,
+                X_group,
+                X_period,
+                X_lo_price,
+                X_group_x_period,
+                X_lo_age,
+                X_group_x_period_x_lo_age,
+                X_group_x_period_x_lo_price,
+                X_group_x_period_x_strategy,
+                X_group_x_period_x_roleplay
+  )
+
+##find out any multicolinearity among variables
+library(corrplot)
+data_dummy_cor <- cor(data_dummy_only)
+corrplot(data_dummy_cor)
 
 ##unit sale
-reg_unitsale_2 <- lm(data_dummy$unit_sales ~ data_dummy$X_group+ 
-                     data_dummy$X_period+ 
-                     data_dummy$X_strategy+
-                     data_dummy$X_action+
-                     data_dummy$X_roleplay+
-                     data_dummy$X_group_x_period+
-                     data_dummy$X_group_x_period_x_strategy+
-                     data_dummy$X_group_x_period_x_action+
-                     data_dummy$X_group_x_period_roleplay
-                     )
+reg_unitsale_2 <- lm(unit_sales ~ ., data = data_dummy_only)
 
 
-##price
-reg_price_2 <- lm(data_dummy$price ~ data_dummy$X_group+ 
-                  data_dummy$X_period+
-                  data_dummy$X_strategy+
-                  data_dummy$X_action+
-                  data_dummy$X_roleplay+
-                  data_dummy$X_group_x_period+
-                  data_dummy$X_group_x_period_x_strategy+
-                  data_dummy$X_group_x_period_x_action+
-                  data_dummy$X_group_x_period_roleplay
-                  )
+
+
+
 
 
