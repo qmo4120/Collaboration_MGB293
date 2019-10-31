@@ -53,7 +53,9 @@ data_dummy <- data_original %>%
          X_group_x_period_action_x_hi_age = X_group_x_period*X_action*X_hi_age,
          X_group_x_period_strategy_x_hi_age = X_group_x_period*X_strategy*X_hi_age,
          X_group_x_period_x_lo_age = X_group*X_period*X_lo_age,
-         X_group_x_period_x_lo_price = X_group*X_period*X_lo_price
+         X_group_x_period_x_lo_price = X_group*X_period*X_lo_price,
+         X_group_x_X_price = X_group*X_lo_price,
+         X_group_x_X_age = X_group*X_lo_age
          )
 
 
@@ -88,7 +90,9 @@ data_dummy_only <- data_dummy %>%
                 X_group_x_period_x_lo_age,
                 X_group_x_period_x_lo_price,
                 X_group_x_period_x_strategy,
-                X_group_x_period_x_roleplay
+                X_group_x_period_x_roleplay,
+                X_group_x_X_price,
+                X_group_x_X_age
   )
 
 ##find out any multicolinearity among variables
