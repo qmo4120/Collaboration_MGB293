@@ -20,7 +20,7 @@ data_original$unit_sales <- as.numeric(gsub(",","", data_original$unit_sales))
 
 ##explore data set again
 View(data_original)
-glimpse(data_original)
+str(data_original)
 
 ##create data set with dummy variables
 
@@ -36,10 +36,10 @@ data_dummy <- data_original %>%
          X_group_x_period_x_strategy = X_group_x_period*X_strategy,
          X_group_x_period_x_action = X_group_x_period*X_action,
          X_group_x_period_x_roleplay = X_group_x_period*X_roleplay,
-         X_lo_price = ifelse(price <= 22.99, 1,0),
-         X_hi_price = ifelse(price > 22.99, 1,0),
-         X_lo_age = ifelse(age_week <= 14, 1,0),
-         X_hi_age = ifelse(age_week > 14, 1,0),
+         X_lo_price = ifelse(price <= 20, 1,0),
+         X_hi_price = ifelse(price >= 30, 1,0),
+         X_lo_age = ifelse(age_week <= 7, 1,0),
+         X_hi_age = ifelse(age_week >= 20, 1,0),
          X_group_x_period_roleplay_x_lo_price = X_group_x_period*X_roleplay*X_lo_price,
          X_group_x_period_action_x_lo_price = X_group_x_period*X_action*X_lo_price,
          X_group_x_period_strategy_x_lo_price = X_group_x_period*X_strategy*X_lo_price,
@@ -54,27 +54,23 @@ data_dummy <- data_original %>%
          X_group_x_period_strategy_x_hi_age = X_group_x_period*X_strategy*X_hi_age,
          X_group_x_period_x_lo_age = X_group*X_period*X_lo_age,
          X_group_x_period_x_lo_price = X_group*X_period*X_lo_price,
-         X_group_x_X_price = X_group*X_lo_price,
-         X_group_x_X_age = X_group*X_lo_age
+         X_group_x_period_x_hi_age = X_group*X_period*X_hi_age,
+         X_group_x_period_x__price = X_group*X_period*X_hi_price,
+         X_group_x_X_lo_price = X_group*X_lo_price,
+         X_group_x_X_hi_price = X_group*X_hi_price,
+         X_group_x_X_lo_age = X_group*X_lo_age,
+         X_group_x_X_hi_age = X_group*X_hi_age
          )
 
 
 View(data_dummy)
 
 
-
-
-
-  
-##perform linear regression
-##retention time
-
-
 ##unit sale
 reg_unitsale <- lm(data_dummy$unit_sales ~ data_dummy$X_group+ 
                 data_dummy$X_period+ 
                 data_dummy$X_group_x_period)
-
+summary(reg_unitsale)
 
 ##part2
 
@@ -82,18 +78,18 @@ data_dummy_only <- data_dummy %>%
   dplyr::select(unit_sales,
                 X_strategy,
                 X_roleplay,
+                X_hi_price,
+                X_hi_age,
+                X_lo_price,
+                X_lo_age,
                 X_group,
                 X_period,
-                X_lo_price,
                 X_group_x_period,
-                X_lo_age,
-                X_group_x_period_x_lo_age,
-                X_group_x_period_x_lo_price,
-                X_group_x_period_x_strategy,
-                X_group_x_period_x_roleplay,
-                X_group_x_X_price,
-                X_group_x_X_age
-  )
+                X_group_x_X_lo_price,
+                X_group_x_X_hi_price,
+                X_group_x_X_lo_age,
+                X_group_x_X_hi_age
+                )
 
 ##find out any multicolinearity among variables
 library(corrplot)
@@ -103,8 +99,7 @@ corrplot(data_dummy_cor)
 ##unit sale
 reg_unitsale_2 <- lm(unit_sales ~ ., data = data_dummy_only)
 
-
-
+summary(reg_unitsale_2)
 
 
 
