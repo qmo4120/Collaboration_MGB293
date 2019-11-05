@@ -1,5 +1,3 @@
-
-
 ##load package
 library(tidyr)
 library(tidyverse)
@@ -65,8 +63,8 @@ data_dummy <- data_original %>%
 
 View(data_dummy)
 
+##run linear regression
 
-##unit sale
 reg_unitsale <- lm(data_dummy$unit_sales ~ data_dummy$X_group+ 
                 data_dummy$X_period+ 
                 data_dummy$X_group_x_period)
