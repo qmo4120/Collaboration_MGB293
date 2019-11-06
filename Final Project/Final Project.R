@@ -31,6 +31,52 @@ data_combined <- cbind.data.frame(data_dummy,data_other)
 data_combined <- drop_na(data_combined)
 
 data_combined <- data_combined %>%
-  dplyr::select(-"neighbourhood_group", -"neighbourhood", -"room_type")
+  mutate(X_hi_price=ifelse(price >= 101, 1,0))%>%
+  dplyr::select(-"neighbourhood_group", -"neighbourhood", -"room_type",-"price")
 
-reg_1 <- lm(price~., data = data_combined)
+##load package for machine learning
+library(caTools) # contains function for splitting the data
+library(caret) # contains function for creating a confusion matrix
+library(e1071) # contains function for confusion matrix
+library(pROC) ## contains function for ROC curve
+
+str(data_combined)
+
+# Split the data into training set (80%) and testing set (20%)
+
+set.seed(123) # ensure reproducibility
+#Sample.split() separate data set into ratio = TRUE:False. In this case
+#in this case, 80% will be true and rest will be false
+sample <- sample.split(data_combined, SplitRatio = .8)
+train <- data_combined[sample == TRUE,]
+test <- data_combined[sample == FALSE,]
+
+##apply a logistic model
+logreg <- glm(formula = X_hi_price ~ .,
+              family = binomial(link = "logit"),
+              data = train)
+
+# Generate predictions using the `test` set and store in column called `prediction`
+
+test <- test %>%
+  mutate(prediction = predict(logreg, newdata = test, type = "response"))
+
+## Apply a decision rule: if `prediction` > 0.5, change it to 1, else change it to 0
+
+test <- test %>%
+  mutate(prediction = ifelse(prediction > 0.5, 1, 0))
+
+# Change `prediction` and `X_hi_price` columns to factors
+
+test <- test %>%
+  mutate(prediction = as.factor(prediction),
+        X_hi_price = as.factor(X_hi_price))
+
+##generate confusion matrix
+confusion_matrix <- confusionMatrix(data = test$prediction, reference = test$X_hi_price, positive = NULL)
+confusion_matrix
+
+
+###  The test data is where this truly counts.
+roc_curve <- plot(roc(train$X_hi_price, logreg$fitted.values))
+
