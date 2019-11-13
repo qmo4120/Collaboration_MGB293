@@ -35,6 +35,7 @@ data_combined <- data_combined %>%
   dplyr::select(-"neighbourhood_group", -"neighbourhood", -"room_type",-"price")
 
 ##load package for machine learning
+
 library(caTools) # contains function for splitting the data
 library(caret) # contains function for creating a confusion matrix
 library(e1071) # contains function for confusion matrix
