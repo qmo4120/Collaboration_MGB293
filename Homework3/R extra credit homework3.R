@@ -17,3 +17,4 @@ intercept = c(A_LA = -0.7, A_SB = -0.2, A_SD = -0.5, A_FRE = -0.4, A_INC = 0.25)
 price_discount = c(B_LA = -0.06, B_SB = -0.06, B_SD = -0.06, B_FRE = -0.07, B_INC = 0.02)
 
 sqrt_price_discount = c(B_LA = -0.2, B_SB = -0.2, B_SD = -0.2, B_FRE = -0.25, B_INC = 0.1)
+
