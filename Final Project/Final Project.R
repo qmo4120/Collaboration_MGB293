@@ -5,6 +5,7 @@ library(dbplyr)
 library(car)
 #install.packages("fastDummies")
 library(fastDummies)
+library(MASS) ##for step-wise modeling
 
 ##load .csv file
 
@@ -14,9 +15,6 @@ str(data_original)
 
 
 
-##create dummy variable for neighborhood
-data
-
 
 data_subset <- data_original%>%
   dplyr::select("neighbourhood_group", "neighbourhood","room_type")
@@ -24,7 +22,12 @@ data_subset <- data_original%>%
 data_dummy <- fastDummies::dummy_cols(data_subset)
 
 data_other <- data_original%>%
-  dplyr::select("price", "minimum_nights","number_of_reviews", "reviews_per_month", "calculated_host_listings_count", "availability_365")
+  dplyr::select("price", 
+                "minimum_nights",
+                "number_of_reviews", 
+                "reviews_per_month", 
+                "calculated_host_listings_count", 
+                "availability_365")
 
 data_combined <- cbind.data.frame(data_dummy,data_other)
 
@@ -80,4 +83,9 @@ confusion_matrix
 
 ###  The test data is where this truly counts.
 roc_curve <- plot(roc(train$X_hi_price, logreg$fitted.values))
+
+
+step.model <- stepAIC(logreg, direction = "both", 
+                      trace = FALSE)
+summary(step.model)
 
