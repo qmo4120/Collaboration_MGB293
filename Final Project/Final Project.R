@@ -60,6 +60,8 @@ logreg <- glm(formula = X_hi_price ~ .,
               family = binomial(link = "logit"),
               data = train)
 
+
+
 # Generate predictions using the `test` set and store in column called `prediction`
 
 test <- test %>%
@@ -88,4 +90,88 @@ roc_curve <- plot(roc(train$X_hi_price, logreg$fitted.values))
 step.model <- stepAIC(logreg, direction = "both", 
                       trace = FALSE)
 summary(step.model)
+
+
+
+
+
+
+##########################review_per_month##################################
+
+data_subset_2 <- data_original%>%
+  dplyr::select("neighbourhood_group", "neighbourhood","room_type")
+
+data_dummy_2 <- fastDummies::dummy_cols(data_subset_2)
+
+data_other_2 <- data_original%>%
+  dplyr::select("price", 
+                "minimum_nights",
+                "number_of_reviews", 
+                "reviews_per_month", 
+                "calculated_host_listings_count", 
+                "availability_365")
+
+data_combined_2 <- cbind.data.frame(data_dummy_2,data_other_2)
+
+data_combined_2 <- drop_na(data_combined_2)
+
+data_combined_2 <- data_combined_2 %>%
+  mutate(X_hi_review=ifelse(number_of_reviews >= 29, 1,0))%>%
+  dplyr::select(-"neighbourhood_group", -"neighbourhood", -"room_type",-"number_of_reviews")
+
+##load package for machine learning
+
+library(caTools) # contains function for splitting the data
+library(caret) # contains function for creating a confusion matrix
+library(e1071) # contains function for confusion matrix
+library(pROC) ## contains function for ROC curve
+
+str(data_combined_2)
+
+# Split the data into training set (80%) and testing set (20%)
+
+set.seed(123) # ensure reproducibility
+#Sample.split() separate data set into ratio = TRUE:False. In this case
+#in this case, 80% will be true and rest will be false
+sample <- sample.split(data_combined_2, SplitRatio = .8)
+train <- data_combined_2[sample == TRUE,]
+test <- data_combined_2[sample == FALSE,]
+
+##apply a logistic model
+logreg_2 <- glm(formula = X_hi_review ~ .,
+              family = binomial(link = "logit"),
+              data = train)
+
+
+
+# Generate predictions using the `test` set and store in column called `prediction`
+
+test <- test %>%
+  mutate(prediction = predict(logreg_2, newdata = test, type = "response"))
+
+## Apply a decision rule: if `prediction` > 0.5, change it to 1, else change it to 0
+
+test <- test %>%
+  mutate(prediction = ifelse(prediction > 0.5, 1, 0))
+
+# Change `prediction` and `X_hi_review` columns to factors
+
+test <- test %>%
+  mutate(prediction = as.factor(prediction),
+         X_hi_review = as.factor(X_hi_review))
+
+##generate confusion matrix
+confusion_matrix_2 <- confusionMatrix(data = test$prediction, reference = test$X_hi_review, positive = NULL)
+confusion_matrix_2
+
+
+###  The test data is where this truly counts.
+roc_curve_2 <- plot(roc(train$X_hi_review, logreg_2$fitted.values))
+
+
+step.model_2 <- stepAIC(logreg_2, direction = "both", 
+                      trace = FALSE)
+summary(step.model_2)
+
+
 
